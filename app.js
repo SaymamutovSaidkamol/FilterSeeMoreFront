@@ -1,5 +1,6 @@
 const BASE_URL = "https://dummyjson.com";
 const wrapper = document.querySelector(".wrapper");
+const SeeMore = document.querySelector(".btn-see-more");
 
 function renderProd(data) {
   data.products.forEach((prod) => {
@@ -25,31 +26,50 @@ async function fetchData(endpoint, callback) {
   try {
     const responce = await fetch(`${BASE_URL}/${endpoint}`);
     const data = await responce.json();
+    console.log("Skip:", data.skip);
+    if (data.skip >= 190) {
+      SeeMore.style.display = "none";
+    }
     callback(data);
   } catch (error) {
     console.log(error);
-  }
+  } 
 }
 
 const resipe = document.querySelector(".filters__card");
 function renderProdFilter(data) {
-  console.log(data);
   data.forEach((e) => {
     let li = document.createElement("li");
     li.innerHTML = e.name;
+    li.setAttribute("data-slug", e.slug);
     resipe.appendChild(li);
   });
 }
 
 resipe.addEventListener("click", (e) => {
-  console.log(e.target.tagName);
-  if (e.target.tagName == "LI") {
+  if (e.target.tagName === "LI") {
     wrapper.innerHTML = null;
-    fetchData(`products/category/${e.target.innerHTML}`, renderProd);
+    if (e.target.innerHTML === "All") {
+      fetchData(`products`, renderProd);
+    } else {
+      const slug = e.target.dataset.slug;
+      fetchData(`products/category/${encodeURIComponent(slug)}`, renderProd);
+    }
   }
 });
 
+let offset = 0;
+const perPageCount = 10;
+
+SeeMore.onclick = (e) => {
+  offset++;
+  fetchData(
+    `products?limit=${perPageCount}&skip=${perPageCount * offset}`,
+    renderProd
+  );
+};
+
 window.onload = () => {
-  fetchData("products/categories", renderProdFilter); 
-  fetchData("products", renderProd);
+  fetchData("products/categories", renderProdFilter);
+  fetchData(`products?limit=${perPageCount}&skip=0`, renderProd);
 };
