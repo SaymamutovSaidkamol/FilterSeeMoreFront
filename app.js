@@ -1,14 +1,15 @@
-const BASE_URL = "https://dummyjson.com";
 const wrapper = document.querySelector(".wrapper");
 const SeeMore = document.querySelector(".btn-see-more");
+const BASE_URL = "https://dummyjson.com";
 
 function renderProd(data) {
   data.products.forEach((prod) => {
     const card = document.createElement("div");
     card.className = "card";
+    card.dataset.id = prod.id
     card.innerHTML = `
         <div class="card__image">
-            <img src="${prod.images[0]}" alt="">
+            <img name="card-image" src="${prod.images[0]}" alt="">
         </div>
         <div class="card__body">
             <h2>${prod.title}</h2>
@@ -19,6 +20,16 @@ function renderProd(data) {
         </div>
     `;
     wrapper.appendChild(card);
+  });
+}
+
+const resipe = document.querySelector(".filters__card");
+function renderProdFilter(data) {
+  data.forEach((e) => {
+    let li = document.createElement("li");
+    li.innerHTML = e.name;
+    li.setAttribute("data-slug", e.slug);
+    resipe.appendChild(li);
   });
 }
 
@@ -33,17 +44,7 @@ async function fetchData(endpoint, callback) {
     callback(data);
   } catch (error) {
     console.log(error);
-  } 
-}
-
-const resipe = document.querySelector(".filters__card");
-function renderProdFilter(data) {
-  data.forEach((e) => {
-    let li = document.createElement("li");
-    li.innerHTML = e.name;
-    li.setAttribute("data-slug", e.slug);
-    resipe.appendChild(li);
-  });
+  }
 }
 
 resipe.addEventListener("click", (e) => {
@@ -68,6 +69,14 @@ SeeMore.onclick = (e) => {
     renderProd
   );
 };
+
+wrapper.addEventListener("click", (event) => {
+  let name = event.target.name
+  if (name === "card-image") {
+    const id = event.target.closest(".card").dataset.id
+    window.open(`file:///C:/Users/user/Desktop/FilterSeeMoreFront/recipe.html?id=${id}`, "_self");
+  }
+});
 
 window.onload = () => {
   fetchData("products/categories", renderProdFilter);
